@@ -1,0 +1,19 @@
+{
+  "name": "risk-engine",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "nodemon src/index.js",
+    "test": "jest src/index.spec.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "express": "^4.16.2",
+    "nodemon": "^1.15.1",
+    "winston": "^2.4.0"
+  },
+  "devDependencies": {
+    "jest": "^22.4.2"
+  }
+}
