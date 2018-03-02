@@ -1,0 +1,4 @@
+---
+applications:
+- name: risk-engine
+  memory: 256M
