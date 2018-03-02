@@ -74,7 +74,7 @@ describe('function: calculateRisk', () => {
     const result = hygienePotentialHazardService.calculateRisk();
 
     it('should return Error', () => {
-      expect(result).toBe(Error);
+      expect(result).resolves.toBe(Error);
     });
   });
 
@@ -90,36 +90,35 @@ describe('function: calculateRisk', () => {
 
     it('should return Error', () => {
       incorrectParamsArray.forEach((param) => {
-        expect(hygienePotentialHazardService.calculateRisk(param)).toBe(Error);
+        expect(hygienePotentialHazardService.calculateRisk(param)).resolves.toBe(Error);
       });
     });
   });
 
   describe('when given valid params', () => {
     const result = hygienePotentialHazardService.calculateRisk(['001', '998', 'TYPE-941', 'TYPE-789', 'TYPE-222']);
-    console.log('hygienePotentialHazardService.calculateRisk output: ', result);
 
     it('should not return Error', () => {
-      expect(result).not.toBe(Error);
+      expect(result).resolves.not.toBe(Error);
     });
 
     it('should return an object containing two objects: riskScores and granularScores', () => {
-      expect(typeof result).toBe('object');
-      expect(result.riskScores).toBeTruthy();
-      expect(result.granularScores).toBeTruthy();
+      expect(typeof result).resolves.toBe('object');
+      expect(result.riskScores).resolves.toBeTruthy();
+      expect(result.granularScores).resolves.toBeTruthy();
     });
 
     it('riskScores object should contain at least one key, with number values for each key', () => {
-      expect(typeof Object.values(result.riskScores)[0]).toBe('number');
+      expect(typeof Object.values(result.riskScores)[0]).resolves.toBe('number');
       
       let returnsObjectWithNumberValues = Object.values(result.riskScores).every((value) => {
         return typeof value === 'number';
       });
-      expect(returnsObjectWithNumberValues).toBe(true);
+      expect(returnsObjectWithNumberValues).resolves.toBe(true);
     });
 
     it('riskScores object should have the correct score, based on the highest "level" base score and subsequent qualifier scores', () => {
-      expect(result.riskScores).toEqual({
+      expect(result.riskScores).resolves.toEqual({
         A: 30,
         B: 20,
         C: 10,
@@ -128,7 +127,7 @@ describe('function: calculateRisk', () => {
     });
 
     it('granularScores object should have the correct counted, graded, and total risks', () => {
-      expect(result.granularScores).toEqual({
+      expect(result.granularScores).resolves.toEqual({
         A: {
           4: 1,
           total: 4
@@ -142,9 +141,9 @@ describe('function: calculateRisk', () => {
     });
 
     it('inspectionRecommendation should return a string that matches one of the threshold options', () => {
-      expect(result.inspectionRecommendation).toBeTruthy();
-      expect(typeof result.inspectionRecommendation).toBe('string');
-      expect(Object.values(mockStore.getRiskRules().thresholds)).toContain(result.inspectionRecommendation);
+      expect(result.inspectionRecommendation).resolves.toBeTruthy();
+      expect(typeof result.inspectionRecommendation).resolves.toBe('string');
+      expect(Object.values(mockStore.getRiskRules().thresholds)).resolves.toContain(result.inspectionRecommendation);
     });
 
   });
