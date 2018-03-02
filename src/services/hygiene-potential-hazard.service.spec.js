@@ -71,7 +71,7 @@ const hygienePotentialHazardService = require('./hygiene-potential-hazard.servic
 
 describe('function: calculateRisk', () => {
   describe('when given no params', () => {
-    const result = hygienePotentialHazardService.calculateRisk();
+    let result = hygienePotentialHazardService.calculateRisk();
 
     it('should return Error', () => {
       expect(result).resolves.toBe(Error);
@@ -96,29 +96,32 @@ describe('function: calculateRisk', () => {
   });
 
   describe('when given valid params', () => {
-    const result = hygienePotentialHazardService.calculateRisk(['001', '998', 'TYPE-941', 'TYPE-789', 'TYPE-222']);
+    let result = hygienePotentialHazardService.calculateRisk(['001', '998', 'TYPE-941', 'TYPE-789', 'TYPE-222']);
 
     it('should not return Error', () => {
       expect(result).resolves.not.toBe(Error);
     });
 
-    it('should return an object containing two objects: riskScores and granularScores', () => {
-      expect(typeof result).resolves.toBe('object');
-      expect(result.riskScores).resolves.toBeTruthy();
-      expect(result.granularScores).resolves.toBeTruthy();
+    it('should return an object containing two objects: riskScores and granularScores', async () => {
+      result = await result;
+      expect(typeof result).toBe('object');
+      expect(result.riskScores).toBeTruthy();
+      expect(result.granularScores).toBeTruthy();
     });
 
-    it('riskScores object should contain at least one key, with number values for each key', () => {
-      expect(typeof Object.values(result.riskScores)[0]).resolves.toBe('number');
+    it('riskScores object should contain at least one key, with number values for each key', async () => {
+      result = await result;
+      expect(typeof Object.values(result.riskScores)[0]).toBe('number');
       
       let returnsObjectWithNumberValues = Object.values(result.riskScores).every((value) => {
         return typeof value === 'number';
       });
-      expect(returnsObjectWithNumberValues).resolves.toBe(true);
+      expect(returnsObjectWithNumberValues).toBe(true);
     });
 
-    it('riskScores object should have the correct score, based on the highest "level" base score and subsequent qualifier scores', () => {
-      expect(result.riskScores).resolves.toEqual({
+    it('riskScores object should have the correct score, based on the highest "level" base score and subsequent qualifier scores', async () => {
+      result = await result;
+      expect(result.riskScores).toEqual({
         A: 30,
         B: 20,
         C: 10,
@@ -126,8 +129,9 @@ describe('function: calculateRisk', () => {
       });
     });
 
-    it('granularScores object should have the correct counted, graded, and total risks', () => {
-      expect(result.granularScores).resolves.toEqual({
+    it('granularScores object should have the correct counted, graded, and total risks', async () => {
+      result = await result;
+      expect(result.granularScores).toEqual({
         A: {
           4: 1,
           total: 4
@@ -140,10 +144,11 @@ describe('function: calculateRisk', () => {
       });
     });
 
-    it('inspectionRecommendation should return a string that matches one of the threshold options', () => {
-      expect(result.inspectionRecommendation).resolves.toBeTruthy();
-      expect(typeof result.inspectionRecommendation).resolves.toBe('string');
-      expect(Object.values(mockStore.getRiskRules().thresholds)).resolves.toContain(result.inspectionRecommendation);
+    it('inspectionRecommendation should return a string that matches one of the threshold options', async () => {
+      result = await result;
+      expect(result.inspectionRecommendation).toBeTruthy();
+      expect(typeof result.inspectionRecommendation).toBe('string');
+      expect(Object.values(mockStore.getRiskRules().thresholds)).toContain(result.inspectionRecommendation);
     });
 
   });
