@@ -1,74 +1,77 @@
-const mockRiskRules = {
-  "thresholds": {
-    "0": "Incident-based inspection",
-    "31": "Desktop inspection",
-    "52": "Full inspection"
-  },
-  "baseScores": {
-    "TYPE-789": {
-      "answerText": "Restaurant and caterer",
-      "level": 1,
-      "baseScores": {
-        "A": 30,
-        "B": 0,
-        "C": 5,
-        "D": 0
+const mockStore = {
+  getRiskRules: (() => mockStore.riskRules),
+  riskRules: {
+    "thresholds": {
+      "0": "Incident-based inspection",
+      "31": "Desktop inspection",
+      "52": "Full inspection"
+    },
+    "baseScores": {
+      "TYPE-789": {
+        "answerText": "Restaurant and caterer",
+        "level": 1,
+        "baseScores": {
+          "A": 30,
+          "B": 0,
+          "C": 5,
+          "D": 0
+        }
+      },
+      "TYPE-941": {
+        "answerText": "Child care",
+        "level": 2,
+        "baseScores": {
+          "A": 30,
+          "B": 0,
+          "C": 5,
+          "D": 22
+        }
       }
     },
-    "TYPE-941": {
-      "answerText": "Child care",
-      "level": 2,
-      "baseScores": {
-        "A": 30,
-        "B": 0,
-        "C": 5,
-        "D": 22
+    "qualifierScores": {
+      "001": {
+        "qualifiers": [
+          {
+            "for": "B",
+            "type": "negative",
+            "value": 20
+          },
+          {
+            "for": "B",
+            "type": "positive",
+            "value": 30
+          },
+          {
+            "for": "C",
+            "type": "positive",
+            "value": 10
+          },
+        ],
+        "granularScores": [
+          {
+            "for": "A",
+            "grade": 4
+          },
+          {
+            "for": "B",
+            "grade": 2
+          },
+          {
+            "for": "B",
+            "grade": 4
+          }
+        ]
       }
-    }
-  },
-  "qualifierScores": {
-    "001": {
-      "qualifiers": [
-        {
-          "for": "B",
-          "type": "negative",
-          "value": 20
-        },
-        {
-          "for": "B",
-          "type": "positive",
-          "value": 30
-        },
-        {
-          "for": "C",
-          "type": "positive",
-          "value": 10
-        },
-      ],
-      "granularScores": [
-        {
-          "for": "A",
-          "grade": 4
-        },
-        {
-          "for": "B",
-          "grade": 2
-        },
-        {
-          "for": "B",
-          "grade": 4
-        }
-      ]
     }
   }
 }
 
-jest.mock('../risk-rules.json', () => mockRiskRules);
-const riskEngine = require('./index.js');
+jest.mock('../store', () => mockStore);
+const hygienePotentialHazardService = require('./hygiene-potential-hazard.service');
 
 describe('function: calculateRisk', () => {
   describe('when given no params', () => {
-    const result = riskEngine.calculateRisk();
+    const result = hygienePotentialHazardService.calculateRisk();
 
     it('should return Error', () => {
       expect(result).toBe(Error);
@@ -87,14 +90,14 @@ describe('function: calculateRisk', () => {
 
     it('should return Error', () => {
       incorrectParamsArray.forEach((param) => {
-        expect(riskEngine.calculateRisk(param)).toBe(Error);
+        expect(hygienePotentialHazardService.calculateRisk(param)).toBe(Error);
       });
     });
   });
 
   describe('when given valid params', () => {
-    const result = riskEngine.calculateRisk(['001', '998', 'TYPE-941', 'TYPE-789', 'TYPE-222']);
-    console.log(result);
+    const result = hygienePotentialHazardService.calculateRisk(['001', '998', 'TYPE-941', 'TYPE-789', 'TYPE-222']);
+    console.log('hygienePotentialHazardService.calculateRisk output: ', result);
 
     it('should not return Error', () => {
       expect(result).not.toBe(Error);
@@ -141,7 +144,7 @@ describe('function: calculateRisk', () => {
     it('inspectionRecommendation should return a string that matches one of the threshold options', () => {
       expect(result.inspectionRecommendation).toBeTruthy();
       expect(typeof result.inspectionRecommendation).toBe('string');
-      expect(Object.values(mockRiskRules.thresholds)).toContain(result.inspectionRecommendation);
+      expect(Object.values(mockStore.getRiskRules().thresholds)).toContain(result.inspectionRecommendation);
     });
 
   });

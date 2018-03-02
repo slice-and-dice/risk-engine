@@ -1,0 +1,113 @@
+const store = {
+  riskRules: {
+    "thresholds": {
+      "0": "Incident-based inspection",
+      "31": "Desktop inspection",
+      "52": "Full inspection"
+    },
+    "baseScores": {
+      "TYPE-789": {
+        "answerText": "Restaurant and caterer",
+        "level": 1,
+        "baseScores": {
+          "A": 30,
+          "B": 0,
+          "C": 5,
+          "D": 0
+        }
+      },
+      "TYPE-941": {
+        "answerText": "Child care",
+        "level": 2,
+        "baseScores": {
+          "A": 30,
+          "B": 0,
+          "C": 5,
+          "D": 22
+        }
+      },
+      "TYPE-567": {
+        "answerText": "Care home",
+        "level": 2,
+        "baseScores": {
+          "A": 30,
+          "B": 0,
+          "C": 5,
+          "D": 22
+        }
+      },
+      "TYPE-201": {
+        "answerText": "Child minder",
+        "level": 3,
+        "baseScores": {
+          "A": 10,
+          "B": 0,
+          "C": 0,
+          "D": 0
+        }
+      }
+    },
+    
+    "qualifierScores": {
+      "001": {
+        "qualifiers": [
+          {
+            "for": "B",
+            "type": "positive",
+            "value": 30
+          }
+        ],
+        "granularScores": [
+          {
+            "for": "A",
+            "grade": 4
+          },
+          {
+            "for": "B",
+            "grade": 2
+          }
+        ]
+      },
+      "002": {
+        "qualifiers": [
+          {
+            "for": "A",
+            "type": "negative",
+            "value": 10
+          },
+          {
+            "for": "D",
+            "type": "positive",
+            "value": 40
+          }
+        ],
+        "granularScores": [
+          {
+            "for": "C",
+            "grade": 3
+          },
+          {
+            "for": "D",
+            "grade": 1
+          }
+        ]
+      }
+    }
+  }
+};
+
+const randomlyFail = () => Math.random() > 0.9;
+
+const getRiskRules = () => {
+  return new Promise((resolve, reject) => {
+    if (randomlyFail()) {
+      reject(new Error('Risk rules could not be found'));
+    } else {
+      resolve(store.riskRules);
+    }
+  });
+}
+
+module.exports = {
+  getRiskRules
+};
