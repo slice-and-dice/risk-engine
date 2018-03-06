@@ -26,25 +26,36 @@ const mockStore = {
           "C": 5,
           "D": 22
         }
+      },
+      "TYPE-567": {
+        "answerText": "Care home",
+        "level": 2,
+        "baseScores": {
+          "A": 30,
+          "B": 0,
+          "C": 5,
+          "D": 22
+        }
+      },
+      "TYPE-201": {
+        "answerText": "Child minder",
+        "level": 3,
+        "baseScores": {
+          "A": 10,
+          "B": 0,
+          "C": 0,
+          "D": 0
+        }
       }
     },
+    
     "qualifierScores": {
       "001": {
         "qualifiers": [
           {
             "for": "B",
-            "type": "negative",
-            "value": 20
-          },
-          {
-            "for": "B",
             "type": "positive",
-            "value": 30
-          },
-          {
-            "for": "C",
-            "type": "positive",
-            "value": 10
+            "value": 32
           },
         ],
         "granularScores": [
@@ -59,6 +70,30 @@ const mockStore = {
           {
             "for": "B",
             "grade": 4
+          },
+        ]
+      },
+      "002": {
+        "qualifiers": [
+          {
+            "for": "A",
+            "type": "negative",
+            "value": 12
+          },
+          {
+            "for": "D",
+            "type": "positive",
+            "value": 42
+          }
+        ],
+        "granularScores": [
+          {
+            "for": "C",
+            "grade": 3
+          },
+          {
+            "for": "D",
+            "grade": 1
           }
         ]
       }
@@ -123,8 +158,8 @@ describe('function: calculateRisk', () => {
       result = await result;
       expect(result.riskScores).toEqual({
         A: 30,
-        B: 20,
-        C: 10,
+        B: 32,
+        C: 5,
         D: 22
       });
     });
@@ -150,6 +185,39 @@ describe('function: calculateRisk', () => {
       expect(typeof result.inspectionRecommendation).toBe('string');
       expect(Object.values(mockStore.getRiskRules().thresholds)).toContain(result.inspectionRecommendation);
     });
+  });
+
+  describe('when given different valid params in a series of requests', () => {
+
+    it('should return a different response for each', async () => {
+      let previousResult = null;
+      let validParamsArray = [
+        ['TYPE-789'],
+        ['TYPE-789', '001', '002'],
+        ['TYPE-201', '002'],
+        ['TYPE-201'],
+        ['TYPE-789', '002', '001'],
+        ['TYPE-789', '001'],
+        ['TYPE-789'],
+        ['TYPE-201', '002'],
+        ['TYPE-201'],
+        ['TYPE-201', '001'],
+      ];
+
+      let testsFailed = false;
+
+      for (let param of validParamsArray) {
+        let result = await hygienePotentialHazardService.calculateRisk(param);
+        if(previousResult) {
+          JSON.stringify(result.riskScores) === JSON.stringify(previousResult.riskScores) ? testsFailed = true : null;
+          JSON.stringify(result.granularScores) === JSON.stringify(previousResult.granularScores) ? testsFailed = true: null;
+        }
+        previousResult = result;
+      }
+      
+      expect(testsFailed).toEqual(false);
+    });
 
   });
+
 });

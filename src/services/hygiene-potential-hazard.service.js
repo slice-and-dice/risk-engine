@@ -1,4 +1,5 @@
 const store = require('../store');
+const _ = require('lodash');
 
 const calculateRisk = async (answerIds) => {
   const riskRules = await store.getRiskRules();
@@ -26,12 +27,11 @@ const calculateRisk = async (answerIds) => {
     // BEGIN GRANULAR SCORING
     let rawGranularScores = [];
     qualifierAnswerIds.forEach((answerId) => {
-      let thisGranularRule = riskRules.qualifierScores[answerId] || null;
+      let thisGranularRule = _.cloneDeep(riskRules.qualifierScores[answerId]) || null;
       if(thisGranularRule) {
         rawGranularScores.push(...thisGranularRule.granularScores);
       }
     });
-
 
     rawGranularScores.forEach((granularScore) => {
       let existingCategory = scores.granularScores[granularScore.for];
@@ -60,17 +60,19 @@ const calculateRisk = async (answerIds) => {
     // BEGIN OFFICIAL RISK SCORING
     let level = 0;
     businessTypeAnswerIds.forEach((answerId) => {
-      let thisRule = riskRules.baseScores[answerId] || null;
+      let thisRule = _.cloneDeep(riskRules.baseScores[answerId]) || null;
       if(thisRule && thisRule.level >= level) {
         level = thisRule.level;
         scores.riskScores = thisRule.baseScores;
+        //console.log(scores.riskScores);
       }
     });
+
 
     let positiveQualifiers = [];
     let negativeQualifiers = [];
     qualifierAnswerIds.forEach((answerId) => {
-      let thisRule = riskRules.qualifierScores[answerId] || null;
+      let thisRule = _.cloneDeep(riskRules.qualifierScores[answerId]) || null;
       if(thisRule) {
         positiveQualifiers.push(...(thisRule.qualifiers.filter((qualifier) => {
           return qualifier.type === 'positive';
@@ -99,7 +101,6 @@ const calculateRisk = async (answerIds) => {
     });
 
     scores.inspectionRecommendation = riskRules.thresholds[thresholdKey];
-
     return scores;
   }
   else {

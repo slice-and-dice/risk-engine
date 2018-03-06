@@ -96,7 +96,7 @@ const store = {
   }
 };
 
-const randomlyFail = () => Math.random() > 0.9;
+const randomlyFail = () => Math.random() > 1;
 
 const getRiskRules = () => {
   return new Promise((resolve, reject) => {
