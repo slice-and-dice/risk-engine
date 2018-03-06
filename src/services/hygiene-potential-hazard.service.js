@@ -64,7 +64,6 @@ const calculateRisk = async (answerIds) => {
       if(thisRule && thisRule.level >= level) {
         level = thisRule.level;
         scores.riskScores = thisRule.baseScores;
-        //console.log(scores.riskScores);
       }
     });
 
