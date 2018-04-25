@@ -1,94 +1,87 @@
 const store = {
+  businessTypes: {
+    "Farm-Fruit and vegetable grower": {
+      answerIds: ["TYPE-A0"],
+      baseScores: {
+        A: 30,
+        B: 0,
+        C: 5,
+        D: 0
+      }
+    },
+    Beekeeper: {
+      answerIds: ["TYPE-A0", "TYPE-A3"],
+      baseScores: {
+        A: 30,
+        B: 0,
+        C: 20,
+        D: 0
+      }
+    },
+    "Honey maker": {
+      answerIds: [
+        "TYPE-A1",
+        "TYPE-A3",
+        "TYPE-A4",
+        "TYPE-A9",
+        "TYPE-A10",
+        "TYPE-A11"
+      ],
+      baseScores: {
+        A: 30,
+        B: 10,
+        C: 20,
+        D: 0
+      }
+    }
+  },
   riskRules: {
-    "thresholds": {
+    thresholds: {
       "0": "Incident-based inspection",
       "31": "Desktop inspection",
       "52": "Full inspection"
     },
-    "baseScores": {
-      "TYPE-789": {
-        "answerText": "Restaurant and caterer",
-        "level": 1,
-        "baseScores": {
-          "A": 30,
-          "B": 0,
-          "C": 5,
-          "D": 0
-        }
-      },
-      "TYPE-941": {
-        "answerText": "Child care",
-        "level": 2,
-        "baseScores": {
-          "A": 30,
-          "B": 0,
-          "C": 5,
-          "D": 22
-        }
-      },
-      "TYPE-567": {
-        "answerText": "Care home",
-        "level": 2,
-        "baseScores": {
-          "A": 30,
-          "B": 0,
-          "C": 5,
-          "D": 22
-        }
-      },
-      "TYPE-201": {
-        "answerText": "Child minder",
-        "level": 3,
-        "baseScores": {
-          "A": 10,
-          "B": 0,
-          "C": 0,
-          "D": 0
-        }
-      }
-    },
-    
-    "qualifierScores": {
+    qualifierScores: {
       "001": {
-        "qualifiers": [
+        qualifiers: [
           {
-            "for": "B",
-            "type": "positive",
-            "value": 30
+            for: "B",
+            type: "positive",
+            value: 30
           }
         ],
-        "granularScores": [
+        granularScores: [
           {
-            "for": "A",
-            "grade": 4
+            for: "A",
+            grade: 4
           },
           {
-            "for": "B",
-            "grade": 2
+            for: "B",
+            grade: 2
           }
         ]
       },
       "002": {
-        "qualifiers": [
+        qualifiers: [
           {
-            "for": "A",
-            "type": "negative",
-            "value": 10
+            for: "A",
+            type: "negative",
+            value: 10
           },
           {
-            "for": "D",
-            "type": "positive",
-            "value": 40
+            for: "D",
+            type: "positive",
+            value: 40
           }
         ],
-        "granularScores": [
+        granularScores: [
           {
-            "for": "C",
-            "grade": 3
+            for: "C",
+            grade: 3
           },
           {
-            "for": "D",
-            "grade": 1
+            for: "D",
+            grade: 1
           }
         ]
       }
@@ -101,13 +94,24 @@ const randomlyFail = () => Math.random() > 1;
 const getRiskRules = () => {
   return new Promise((resolve, reject) => {
     if (randomlyFail()) {
-      reject(new Error('Risk rules could not be found'));
+      reject(new Error("Risk rules could not be found"));
     } else {
       resolve(store.riskRules);
     }
   });
-}
+};
+
+const getBusinessTypes = () => {
+  return new Promise((resolve, reject) => {
+    if (randomlyFail()) {
+      reject(new Error("Business types could not be found"));
+    } else {
+      resolve(store.businessTypes);
+    }
+  });
+};
 
 module.exports = {
-  getRiskRules
+  getRiskRules,
+  getBusinessTypes
 };

@@ -1,21 +1,22 @@
-const store = require('../store');
-const _ = require('lodash');
+const store = require("../store");
+const _ = require("lodash");
 
-const calculateRisk = async (answerIds) => {
+const calculateRisk = async answerIds => {
   const riskRules = await store.getRiskRules();
+  const businessTypesMatrix = await store.getBusinessTypes();
 
-  if(
+  if (
     answerIds instanceof Array &&
-    answerIds.every((answerId) => {
-      return typeof answerId === 'string';
+    answerIds.every(answerId => {
+      return typeof answerId === "string";
     })
-  ){
-    let businessTypeAnswerIds = answerIds.filter((answerId) => {
-      return answerId.slice(0, 5) === 'TYPE-';
+  ) {
+    let businessTypeAnswerIds = answerIds.filter(answerId => {
+      return answerId.slice(0, 5) === "TYPE-";
     });
 
-    let qualifierAnswerIds = answerIds.filter((answerId) => {
-      return answerId.slice(0, 5) !== 'TYPE-';
+    let qualifierAnswerIds = answerIds.filter(answerId => {
+      return answerId.slice(0, 5) !== "TYPE-";
     });
 
     let scores = {
@@ -26,86 +27,100 @@ const calculateRisk = async (answerIds) => {
 
     // BEGIN GRANULAR SCORING
     let rawGranularScores = [];
-    qualifierAnswerIds.forEach((answerId) => {
-      let thisGranularRule = _.cloneDeep(riskRules.qualifierScores[answerId]) || null;
-      if(thisGranularRule) {
+    qualifierAnswerIds.forEach(answerId => {
+      let thisGranularRule =
+        _.cloneDeep(riskRules.qualifierScores[answerId]) || null;
+      if (thisGranularRule) {
         rawGranularScores.push(...thisGranularRule.granularScores);
       }
     });
 
-    rawGranularScores.forEach((granularScore) => {
+    rawGranularScores.forEach(granularScore => {
       let existingCategory = scores.granularScores[granularScore.for];
-      if(existingCategory && existingCategory[granularScore.grade]) {
+      if (existingCategory && existingCategory[granularScore.grade]) {
         existingCategory[granularScore.grade]++;
-      }
-      else if(existingCategory) {
+      } else if (existingCategory) {
         existingCategory[granularScore.grade] = 1;
-      }
-      else {
-        scores.granularScores[granularScore.for] = {[granularScore.grade]: 1};
+      } else {
+        scores.granularScores[granularScore.for] = { [granularScore.grade]: 1 };
       }
     });
 
-    Object.keys(scores.granularScores).forEach((granularScoreCategory) => {
+    Object.keys(scores.granularScores).forEach(granularScoreCategory => {
       let thisCategory = scores.granularScores[granularScoreCategory];
       let totalCategoryScore = 0;
-      Object.keys(thisCategory).forEach((grade) => {
-        totalCategoryScore += (Number(grade) * thisCategory[grade]);
+      Object.keys(thisCategory).forEach(grade => {
+        totalCategoryScore += Number(grade) * thisCategory[grade];
       });
 
       thisCategory.total = totalCategoryScore;
-
     });
 
     // BEGIN OFFICIAL RISK SCORING
-    let level = 0;
-    businessTypeAnswerIds.forEach((answerId) => {
-      let thisRule = _.cloneDeep(riskRules.baseScores[answerId]) || null;
-      if(thisRule && thisRule.level >= level) {
-        level = thisRule.level;
-        scores.riskScores = thisRule.baseScores;
-      }
-    });
+    let lookupValue = Object.values(businessTypesMatrix).find(
+      type =>
+        JSON.stringify(type.answerIds.sort()) ==
+        JSON.stringify(businessTypeAnswerIds.sort())
+    );
 
+    const businessType = _.invert(businessTypesMatrix)[lookupValue];
+    scores.businessType = businessType;
+    scores.riskScores = businessTypesMatrix[businessType].baseScores;
+
+    // let level = 0;
+    // businessType.forEach(answerId => {
+    //   let thisRule = _.cloneDeep(riskRules.baseScores[answerId]) || null;
+    //   if (thisRule && thisRule.level >= level) {
+    //     level = thisRule.level;
+    //     scores.riskScores = thisRule.baseScores;
+    //   }
+    // });
 
     let positiveQualifiers = [];
     let negativeQualifiers = [];
-    qualifierAnswerIds.forEach((answerId) => {
+    qualifierAnswerIds.forEach(answerId => {
       let thisRule = _.cloneDeep(riskRules.qualifierScores[answerId]) || null;
-      if(thisRule) {
-        positiveQualifiers.push(...(thisRule.qualifiers.filter((qualifier) => {
-          return qualifier.type === 'positive';
-        })));
-        negativeQualifiers.push(...(thisRule.qualifiers.filter((qualifier) => {
-          return qualifier.type === 'negative';
-        })));
+      if (thisRule) {
+        positiveQualifiers.push(
+          ...thisRule.qualifiers.filter(qualifier => {
+            return qualifier.type === "positive";
+          })
+        );
+        negativeQualifiers.push(
+          ...thisRule.qualifiers.filter(qualifier => {
+            return qualifier.type === "negative";
+          })
+        );
       }
     });
 
-    positiveQualifiers.forEach((qualifier) => {
-      if(qualifier.value > scores.riskScores[qualifier.for]) {
+    positiveQualifiers.forEach(qualifier => {
+      if (qualifier.value > scores.riskScores[qualifier.for]) {
         scores.riskScores[qualifier.for] = qualifier.value;
       }
     });
 
-    negativeQualifiers.forEach((qualifier) => {
-      if(qualifier.value < scores.riskScores[qualifier.for]) {
+    negativeQualifiers.forEach(qualifier => {
+      if (qualifier.value < scores.riskScores[qualifier.for]) {
         scores.riskScores[qualifier.for] = qualifier.value;
       }
     });
 
-    let totalOfficialScore = Object.values(scores.riskScores).reduce((a, b) => a + b);
-    let thresholdKey = Object.keys(riskRules.thresholds).sort().reverse().find((threshold) => {
-      return Number(threshold) < totalOfficialScore;
-    });
-
+    let totalOfficialScore = Object.values(scores.riskScores).reduce(
+      (a, b) => a + b
+    );
+    let thresholdKey = Object.keys(riskRules.thresholds)
+      .sort()
+      .reverse()
+      .find(threshold => {
+        return Number(threshold) < totalOfficialScore;
+      });
     scores.inspectionRecommendation = riskRules.thresholds[thresholdKey];
     return scores;
-  }
-  else {
+  } else {
     return Error;
   }
-}
+};
 
 module.exports = {
   calculateRisk

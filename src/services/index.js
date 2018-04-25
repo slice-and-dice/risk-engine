@@ -1,3 +1,3 @@
-const hygienePotentialHazardService = require('./hygiene-potential-hazard.service');
+const hygienePotentialHazardService = require("./hygiene-potential-hazard.service");
 
 module.exports = { hygienePotentialHazardService };
