@@ -57,13 +57,13 @@ const calculateRisk = async answerIds => {
     });
 
     // BEGIN OFFICIAL RISK SCORING
-    let lookupValue = Object.values(businessTypesMatrix).find(
+    const businessType = _.findKey(
+      businessTypesMatrix,
       type =>
         JSON.stringify(type.answerIds.sort()) ==
         JSON.stringify(businessTypeAnswerIds.sort())
     );
 
-    const businessType = _.invert(businessTypesMatrix)[lookupValue];
     scores.businessType = businessType;
     scores.riskScores = businessTypesMatrix[businessType].baseScores;
 
